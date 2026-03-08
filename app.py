@@ -4,8 +4,8 @@ Streamlit web app for Spotify playlist shuffling.
 Run locally:
     streamlit run app.py
 
-Requires SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env or environment.
-Set SPOTIFY_REDIRECT_URI to this app's URL (e.g. http://127.0.0.1:8501).
+Requires SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env, environment, or st.secrets (Streamlit Cloud).
+Set SPOTIFY_REDIRECT_URI to this app's URL (e.g. http://127.0.0.1:8501 locally, or https://your-app.streamlit.app).
 """
 
 import os
@@ -24,13 +24,25 @@ import spotipy
 
 from spotify_shuffler import SCOPES, get_user_playlists, shuffle_playlist
 
+
+def _get_secret(key: str, default: str = "") -> str:
+    """Read from os.environ first, then st.secrets (Streamlit Cloud), then default."""
+    val = os.environ.get(key)
+    if val:
+        return val
+    try:
+        return st.secrets[key]
+    except (KeyError, FileNotFoundError):
+        return default
+
+
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
 
-CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET", "")
-REDIRECT_URI = os.environ.get("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:8501")
+CLIENT_ID = _get_secret("SPOTIFY_CLIENT_ID")
+CLIENT_SECRET = _get_secret("SPOTIFY_CLIENT_SECRET")
+REDIRECT_URI = _get_secret("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:8501")
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
